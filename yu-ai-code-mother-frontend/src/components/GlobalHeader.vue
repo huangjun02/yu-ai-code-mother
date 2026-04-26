@@ -1,6 +1,5 @@
 <template>
   <header class="global-header">
-    <div class="top-strip"></div>
     <a-layout-header class="header">
       <div class="header-inner">
         <a-row :wrap="false" align="middle">
@@ -21,23 +20,74 @@
             />
           </a-col>
           <!-- 右侧：用户操作区域 -->
-          <a-col flex="120px">
+          <a-col flex="200px">
             <div class="user-login-status">
-              <a-button type="primary" size="middle" shape="round">登录</a-button>
+              <div v-if="isLoggedIn">
+                <a-dropdown placement="bottomCenter" trigger="click">
+                  <a-space class="user-trigger">
+                    <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+                    <span>{{ loginUserStore.loginUser.userName ?? '无名' }}</span>
+                  </a-space>
+                  <template #overlay>
+                    <div class="user-dropdown-card">
+                      <a-button class="logout-btn" type="text" @click="handleLogout">
+                        <LogoutOutlined class="logout-icon" />
+                        退出登录
+                      </a-button>
+                    </div>
+                  </template>
+                </a-dropdown>
+              </div>
+              <div v-else>
+                <a-button type="primary" href="/user/login">登录</a-button>
+              </div>
             </div>
           </a-col>
         </a-row>
-        </div>
+      </div>
     </a-layout-header>
   </header>
 </template>
 
 <script setup lang="ts">
-import { h, ref } from 'vue'
+import { h, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { MenuProps } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
+import { LogoutOutlined } from '@ant-design/icons-vue'
+import { userLogout } from '@/api/userController.ts'
+
+// JS 中引入 Store
+import { useLoginUserStore } from '@/stores/loginUser.ts'
+const loginUserStore = useLoginUserStore()
 
 const router = useRouter()
+
+// 判断是否已登录（兼容 id 为字符串的情况）
+const isLoggedIn = computed(() => {
+  const user = loginUserStore.loginUser
+  return user && user.id && user.userName && user.userName !== '未登录'
+})
+
+// 组件挂载时获取登录用户信息
+onMounted(async () => {
+  await loginUserStore.fetchLoginUser()
+  console.log('登录用户信息:', loginUserStore.loginUser)
+})
+
+const handleLogout = async () => {
+  const res = await userLogout()
+  if (res.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: '未登录'
+    })
+    message.success('退出登录成功')
+    await router.push('/user/login')
+    return
+  }
+  message.error(res.data.message || '退出登录失败')
+}
+
 // 当前选中菜单
 const selectedKeys = ref<string[]>(['/'])
 // 监听路由变化，更新当前选中菜单
@@ -45,24 +95,34 @@ router.afterEach((to, from, next) => {
   selectedKeys.value = [to.path]
 })
 
-// 菜单配置项
-const menuItems = ref([
-  {
-    key: '/',
-    label: '首页',
-    title: '首页',
-  },
-  {
-    key: '/about',
-    label: '关于',
-    title: '关于',
-  },
-  {
-    key: 'others',
-    label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
-    title: '编程导航',
-  },
-])
+// 菜单配置项：仅管理员展示用户管理入口
+const menuItems = computed(() => {
+  const items = [
+    {
+      key: '/',
+      label: '首页',
+      title: '首页',
+    },
+    {
+      key: '/about',
+      label: '关于',
+      title: '关于',
+    },
+    {
+      key: 'others',
+      label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
+      title: '编程导航',
+    },
+  ]
+  if (loginUserStore.loginUser.userRole === 'admin') {
+    items.splice(2, 0, {
+      key: '/admin/userManage',
+      label: '用户管理',
+      title: '用户管理',
+    })
+  }
+  return items
+})
 
 // 处理菜单点击
 const handleMenuClick: MenuProps['onClick'] = (e) => {
@@ -82,11 +142,6 @@ const handleMenuClick: MenuProps['onClick'] = (e) => {
   height: 64px;
   line-height: 64px;
   box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
-}
-
-.top-strip {
-  height: 36px;
-  background: #1f1f1f;
 }
 
 .header-inner {
@@ -121,6 +176,31 @@ const handleMenuClick: MenuProps['onClick'] = (e) => {
 .user-login-status {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.user-trigger {
+  cursor: pointer;
+}
+
+.user-dropdown-card {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 10%);
+}
+
+.logout-btn {
+  height: 42px;
+  border-radius: 10px;
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.88);
+}
+
+.logout-icon {
+  margin-right: 8px;
+  font-size: 18px;
 }
 
 :deep(.ant-menu-horizontal) {
@@ -134,10 +214,6 @@ const handleMenuClick: MenuProps['onClick'] = (e) => {
 }
 
 @media (max-width: 768px) {
-  .top-strip {
-    height: 28px;
-  }
-
   .header {
     height: auto;
     line-height: normal;
