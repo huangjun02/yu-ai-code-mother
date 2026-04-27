@@ -54,7 +54,7 @@ import { h, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { MenuProps } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { LogoutOutlined } from '@ant-design/icons-vue'
+import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { userLogout } from '@/api/userController.ts'
 
 // JS 中引入 Store
@@ -95,34 +95,42 @@ router.afterEach((to, from, next) => {
   selectedKeys.value = [to.path]
 })
 
-// 菜单配置项：仅管理员展示用户管理入口
-const menuItems = computed(() => {
-  const items = [
-    {
-      key: '/',
-      label: '首页',
-      title: '首页',
-    },
-    {
-      key: '/about',
-      label: '关于',
-      title: '关于',
-    },
-    {
-      key: 'others',
-      label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
-      title: '编程导航',
-    },
-  ]
-  if (loginUserStore.loginUser.userRole === 'admin') {
-    items.splice(2, 0, {
-      key: '/admin/userManage',
-      label: '用户管理',
-      title: '用户管理',
-    })
-  }
-  return items
-})
+// 菜单配置项
+const originItems: MenuProps['items'] = [
+  {
+    key: '/',
+    icon: () => h(HomeOutlined),
+    label: '主页',
+    title: '主页',
+  },
+  {
+    key: '/admin/userManage',
+    label: '用户管理',
+    title: '用户管理',
+  },
+  {
+    key: 'others',
+    label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
+    title: '编程导航',
+  },
+]
+
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    const menuKey = menu?.key as string
+    if (menuKey?.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== 'admin') {
+        return false
+      }
+    }
+    return true
+  })
+}
+
+// 展示在菜单的路由数组
+const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems))
 
 // 处理菜单点击
 const handleMenuClick: MenuProps['onClick'] = (e) => {
