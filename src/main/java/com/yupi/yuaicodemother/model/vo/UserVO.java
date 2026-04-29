@@ -1,4 +1,4 @@
-package com.yupi.yuaicodemother.module.vo;
+package com.yupi.yuaicodemother.model.vo;
 
 import lombok.Data;
 

@@ -1,7 +1,7 @@
 package com.yupi.yuaicodemother.mapper;
 
 import com.mybatisflex.core.BaseMapper;
-import com.yupi.yuaicodemother.module.entity.User;
+import com.yupi.yuaicodemother.model.entity.User;
 
 /**
  * 用户 映射层。

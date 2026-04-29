@@ -34,3 +34,6 @@ build/
 
 ### Application Config ###
 src/main/resources/application.yml
+
+### CUSROM ###
+tmp
