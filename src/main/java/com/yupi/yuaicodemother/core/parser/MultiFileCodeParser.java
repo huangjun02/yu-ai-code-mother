@@ -1,6 +1,7 @@
 package com.yupi.yuaicodemother.core.parser;
 
 import com.yupi.yuaicodemother.ai.model.MultiFileCodeResult;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,11 +11,12 @@ import java.util.regex.Pattern;
  *
  * @author yupi
  */
+@Slf4j
 public class MultiFileCodeParser implements CodeParser<MultiFileCodeResult> {
 
-    private static final Pattern HTML_CODE_PATTERN = Pattern.compile("```html\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
-    private static final Pattern CSS_CODE_PATTERN = Pattern.compile("```css\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
-    private static final Pattern JS_CODE_PATTERN = Pattern.compile("```(?:js|javascript)\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    private static final Pattern HTML_CODE_PATTERN = Pattern.compile("```html\\s*\\r?\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CSS_CODE_PATTERN = Pattern.compile("```css\\s*\\r?\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    private static final Pattern JS_CODE_PATTERN = Pattern.compile("```(?:js|javascript)\\s*\\r?\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
 
     @Override
     public MultiFileCodeResult parseCode(String codeContent) {
@@ -26,6 +28,10 @@ public class MultiFileCodeParser implements CodeParser<MultiFileCodeResult> {
         // 设置HTML代码
         if (htmlCode != null && !htmlCode.trim().isEmpty()) {
             result.setHtmlCode(htmlCode.trim());
+        } else {
+            log.warn("未找到 ```html 代码块，尝试使用原始内容作为 HTML 代码");
+            // 如果没有找到代码块，将整个内容作为HTML（与 HtmlCodeParser 行为一致）
+            result.setHtmlCode(codeContent.trim());
         }
         // 设置CSS代码
         if (cssCode != null && !cssCode.trim().isEmpty()) {

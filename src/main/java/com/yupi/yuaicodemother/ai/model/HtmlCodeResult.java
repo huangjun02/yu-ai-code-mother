@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * HTML 代码结果
  */
-@Description("HTML 代码结果")
+@Description("HTML 代码结果"    )
 @Data
 public class HtmlCodeResult {
     @Description("HTML 代码")

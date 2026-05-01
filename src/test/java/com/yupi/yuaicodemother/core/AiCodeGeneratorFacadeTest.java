@@ -10,7 +10,6 @@ import reactor.core.publisher.Flux;
 import java.io.File;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class AiCodeGeneratorFacadeTest {
     @Resource
@@ -18,16 +17,18 @@ class AiCodeGeneratorFacadeTest {
 
     @Test
     void generateAndSaveCode() {
-        File file = aiCodeGeneratorFacade.generateAndSaveCode("生成一个登录页面", CodeGenTypeEnum.HTML);
+        File file = aiCodeGeneratorFacade.generateAndSaveCode("生成一个登录页面", CodeGenTypeEnum.HTML, 1L);
         Assertions.assertNotNull(file);
     }
 
 
     @Test
     void generateAndSaveCodeStream() {
-        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream("生成一个登录页面", CodeGenTypeEnum.MULTI_FILE);
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream("生成一个个人博客网站", CodeGenTypeEnum.MULTI_FILE,2L);
         // 阻塞等待所有数据收集完成
-        List<String> result = codeStream.collectList().block();
+
+
+            List<String> result = codeStream.collectList().block();
         // 验证结果
         Assertions.assertNotNull(result);
         String completeContent = String.join("", result);
