@@ -18,7 +18,7 @@ public abstract class CodeFileSaverTemplate<T> {
 
     // 文件保存根目录
     //protected static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
-    private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/src/main/java/com/yupi/yuaicodemother/tmp/";
+    protected static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/src/main/java/com/yupi/yuaicodemother/tmp/";
 
     /**
      * 模板方法：保存代码的标准流程
